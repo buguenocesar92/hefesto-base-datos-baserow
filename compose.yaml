@@ -1,0 +1,342 @@
+# =============================================================================
+# Hefesto Studio — Kit Baserow (edición Open Source)
+# compose.yaml — instalación de un solo cliente (NO es multi-tenant)
+#
+# Origen: docker-compose.yml oficial de Baserow, versión 2.4.1
+#   https://github.com/baserow/baserow/blob/2.4.1/docker-compose.yml
+# Este archivo es una versión SIMPLIFICADA. Cada diferencia está documentada
+# en docs/01-INSTALACION-DOCKER.md, sección "Diferencias con el compose oficial".
+#
+# Licencia del contenido upstream: MIT Expat (ver LICENCIAS.md).
+# =============================================================================
+
+# Variables compartidas por backend y los tres workers de Celery.
+# A diferencia del compose oficial, aquí NO se declaran las ~290 variables que
+# upstream deja con valor vacío: esas existen solo como documentación de los
+# puntos de ajuste disponibles. upstream considera sus valores por defecto.
+x-backend-variables: &backend-variables
+  # OBLIGATORIAS: si faltan, Docker Compose aborta el arranque.
+  SECRET_KEY: ${SECRET_KEY:?}
+  DATABASE_PASSWORD: ${DATABASE_PASSWORD:?}
+  REDIS_PASSWORD: ${REDIS_PASSWORD:?}
+
+  # Recomendada: si no la defines, Baserow usa SECRET_KEY.
+  BASEROW_JWT_SIGNING_KEY: ${BASEROW_JWT_SIGNING_KEY:-}
+
+  # Debe coincidir EXACTAMENTE con la URL con la que el usuario abre el sitio.
+  BASEROW_PUBLIC_URL: ${BASEROW_PUBLIC_URL:-http://localhost}
+
+  # Base de datos interna de Baserow.
+  DATABASE_USER: ${DATABASE_USER:-baserow}
+  DATABASE_NAME: ${DATABASE_NAME:-baserow}
+  # Vacíos = usar el servicio `db` de este compose (red privada, sin puertos
+  # publicados). Para apuntar a un PostgreSQL externo ver docs/09 y docs/03.
+  DATABASE_HOST:
+  DATABASE_PORT:
+  DATABASE_OPTIONS:
+  DATABASE_URL:
+
+  # Caché / colas internas. Vacíos = usar el servicio `redis` de este compose.
+  REDIS_HOST:
+  REDIS_PORT:
+  REDIS_PROTOCOL:
+  REDIS_URL:
+  REDIS_USER:
+
+  # Correo saliente (opcional; sin esto Baserow no envía correos).
+  EMAIL_SMTP:
+  EMAIL_SMTP_HOST:
+  EMAIL_SMTP_PORT:
+  EMAIL_SMTP_USE_TLS:
+  EMAIL_SMTP_USER:
+  EMAIL_SMTP_PASSWORD:
+  FROM_EMAIL:
+
+  # Bitácora y migraciones.
+  BASEROW_BACKEND_LOG_LEVEL: ${BASEROW_BACKEND_LOG_LEVEL:-INFO}
+  MIGRATE_ON_STARTUP: ${MIGRATE_ON_STARTUP:-true}
+  SYNC_TEMPLATES_ON_STARTUP: ${SYNC_TEMPLATES_ON_STARTUP:-true}
+
+  # Rutas internas de los servicios (no las cambiar sin motivo).
+  PRIVATE_BACKEND_URL: ${PRIVATE_BACKEND_URL:-http://backend:8000}
+  MEDIA_URL:
+  MEDIA_ROOT:
+
+  # SSR (búsqueda de texto completo en PostgreSQL). Requiere pgvector/pgvector.
+  BASEROW_USE_PG_FULLTEXT_SEARCH: ${BASEROW_USE_PG_FULLTEXT_SEARCH:-false}
+
+  # Fija la edición abierta: desactiva funciones premium aunque se registre
+  # una licencia. Útil para dejar claro qué es y qué no es este despliegue.
+  BASEROW_OSS_ONLY: ${BASEROW_OSS_ONLY:-true}
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # caddy — proxy inverso. Es el ÚNICO servicio con puertos publicados.
+  # Enruta /api, /ws y /media, y sirve los archivos adjuntos.
+  # ---------------------------------------------------------------------------
+  caddy:
+    image: caddy:2.11.4
+    restart: unless-stopped
+    environment:
+      BASEROW_CADDY_ADDRESSES: ${BASEROW_CADDY_ADDRESSES:-:80}
+      PRIVATE_WEB_FRONTEND_URL: ${PRIVATE_WEB_FRONTEND_URL:-http://web-frontend:3000}
+      PRIVATE_BACKEND_URL: ${PRIVATE_BACKEND_URL:-http://backend:8000}
+      BASEROW_PUBLIC_URL: ${BASEROW_PUBLIC_URL:-}
+      MEDIA_URL: ${MEDIA_URL:-}
+    ports:
+      # HTTPS: pon WEB_FRONTEND_SSL_PORT=443 y BASEROW_CADDY_ADDRESSES=:443
+      # para que Caddy gestione el certificado (ver docs/01).
+      - "${HOST_PUBLISH_IP:-0.0.0.0}:${WEB_FRONTEND_PORT:-80}:80"
+      - "${HOST_PUBLISH_IP:-0.0.0.0}:${WEB_FRONTEND_SSL_PORT:-443}:443"
+    volumes:
+      # Caddyfile tomado textual del upstream (MIT Expat). Ver docs/10.
+      - ./config/Caddyfile:/etc/caddy/Caddyfile:ro
+      - media:/baserow/media
+      - caddy_config:/config
+      - caddy_data:/data
+    networks:
+      - local
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # ---------------------------------------------------------------------------
+  # backend — API REST y GraphQL.
+  # ---------------------------------------------------------------------------
+  backend:
+    image: baserow/backend:${BASEROW_VERSION:-2.4.1}
+    restart: unless-stopped
+    environment:
+      <<: *backend-variables
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media:/baserow/media
+    networks:
+      - local
+    logging: *logging
+
+  # ---------------------------------------------------------------------------
+  # web-frontend — interfaz de administración (Vue.js).
+  # ---------------------------------------------------------------------------
+  web-frontend:
+    image: baserow/web-frontend:${BASEROW_VERSION:-2.4.1}
+    restart: unless-stopped
+    environment:
+      BASEROW_PUBLIC_URL: ${BASEROW_PUBLIC_URL:-http://localhost}
+      PRIVATE_BACKEND_URL: ${PRIVATE_BACKEND_URL:-http://backend:8000}
+      MEDIA_URL:
+      BASEROW_EXTRA_PUBLIC_URLS:
+      BASEROW_OSS_ONLY: ${BASEROW_OSS_ONLY:-true}
+      BASEROW_USE_PG_FULLTEXT_SEARCH: ${BASEROW_USE_PG_FULLTEXT_SEARCH:-false}
+      # Límite de tamaño de archivo importado (por defecto 512 MB en upstream).
+      BASEROW_MAX_IMPORT_FILE_SIZE_MB: ${BASEROW_MAX_IMPORT_FILE_SIZE_MB:-512}
+    depends_on:
+      - backend
+    networks:
+      - local
+    logging: *logging
+
+  # ---------------------------------------------------------------------------
+  # celery — tareas en segundo plano (colaboración en vivo, automatizaciones,
+  # exportaciones pesadas). Requerido por Baserow; no es opcional.
+  # ---------------------------------------------------------------------------
+  celery:
+    image: baserow/backend:${BASEROW_VERSION:-2.4.1}
+    restart: unless-stopped
+    command: celery-worker
+    environment:
+      <<: *backend-variables
+    # upstream sobrescribe el healthcheck de la imagen con el de Celery.
+    healthcheck:
+      test:
+        ["CMD-SHELL", "/baserow/backend/docker/docker-entrypoint.sh celery-worker-healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media:/baserow/media
+    networks:
+      - local
+    logging: *logging
+
+  # ---------------------------------------------------------------------------
+  # celery-export-worker — cola lenta dedicada a exportaciones grandes.
+  # Separate del worker anterior porque upstream los separa así; sacar este
+  # servicio hace que las exportaciones bloqueen las tareas rápidas.
+  # ---------------------------------------------------------------------------
+  celery-export-worker:
+    image: baserow/backend:${BASEROW_VERSION:-2.4.1}
+    restart: unless-stopped
+    command: celery-exportworker
+    environment:
+      <<: *backend-variables
+    healthcheck:
+      test:
+        ["CMD-SHELL", "/baserow/backend/docker/docker-entrypoint.sh celery-exportworker-healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media:/baserow/media
+    networks:
+      - local
+    logging: *logging
+
+  # ---------------------------------------------------------------------------
+  # celery-beat-worker — planificador de tareas periódicas (limpieza de
+  # historial,papeles, plantillas). Sin él se acumulan datos viejos.
+  # ---------------------------------------------------------------------------
+  celery-beat-worker:
+    image: baserow/backend:${BASEROW_VERSION:-2.4.1}
+    restart: unless-stopped
+    command: celery-beat
+    environment:
+      <<: *backend-variables
+    healthcheck:
+      test:
+        ["CMD-SHELL", "/baserow/backend/docker/docker-entrypoint.sh celery-beat-healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # upstream indica stop_signal SIGQUIT para beat (referencia redbeat).
+    stop_signal: SIGQUIT
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media:/baserow/media
+    networks:
+      - local
+    logging: *logging
+
+  # ---------------------------------------------------------------------------
+  # db — PostgreSQL INTERNO de Baserow.
+  # Guarda definiciones de tablas, usuarios, permisos, tokens, webhooks e
+  # historial. NO es la base de datos del cliente (ver README).
+  # NO tiene `ports:` a propósito: no se publica nunca. Ver docs/05.
+  # ---------------------------------------------------------------------------
+  db:
+    image: pgvector/pgvector:pg15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-baserow}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?}
+      POSTGRES_DB: ${DATABASE_NAME:-baserow}
+    healthcheck:
+      test:
+        ["CMD-SHELL", 'su postgres -c "pg_isready -U ${DATABASE_USER:-baserow}"']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - local
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    logging: *logging
+
+  # ---------------------------------------------------------------------------
+  # redis — caché y colas internas. NO tiene `ports:` a propósito.
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:6
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:?}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - local
+    logging: *logging
+
+  # ---------------------------------------------------------------------------
+  # volume-permissions-fixer — tarea única (se ejecuta y termina).
+  # upstream lo incluye porque el volumen `media` nace propiedad de root y
+  # Django corre como UID 9999. No es un servicio: es un ajuste de permisos.
+  # ---------------------------------------------------------------------------
+  volume-permissions-fixer:
+    image: bash:4.4
+    restart: "no"
+    command: chown 9999:9999 -R /baserow/media
+    volumes:
+      - media:/baserow/media
+    networks:
+      - local
+
+  # ---------------------------------------------------------------------------
+  # email-receiver — OPCIONAL, solo con el perfil "inbound-email".
+  # Recibe correos para el disparador "Start workflow by email" y publica
+  # el puerto SMTP 25 en el host. upstream lo separa en un perfil precisamente
+  # porque Compose no puede publicar un puerto de forma condicional: sin el
+  # perfil, el puerto 25 quedaría abierto en el host aunque nadie lo use.
+  #
+  # Uso:  COMPOSE_PROFILES=inbound-email docker compose up -d
+  # ---------------------------------------------------------------------------
+  email-receiver:
+    image: baserow/backend:${BASEROW_VERSION:-2.4.1}
+    profiles: ["inbound-email"]
+    restart: unless-stopped
+    user: root
+    command: email-receiver
+    ports:
+      - "${BASEROW_INBOUND_EMAIL_HOST_PUBLISH_IP:-${HOST_PUBLISH_IP:-0.0.0.0}}:${BASEROW_INBOUND_EMAIL_HOST_SMTP_PORT:-25}:25"
+    healthcheck:
+      test:
+        ["CMD-SHELL", "/baserow/backend/docker/docker-entrypoint.sh email-receiver-healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      BASEROW_INBOUND_EMAIL_DOMAIN:
+      BASEROW_INBOUND_EMAIL_WEBHOOK_SECRET:
+      BASEROW_INBOUND_EMAIL_WEBHOOK_URL:
+      BASEROW_INBOUND_EMAIL_SMTP_HOSTNAME:
+      BASEROW_INBOUND_EMAIL_SMTP_PORT:
+      BASEROW_INBOUND_EMAIL_TLS_MODE:
+      BASEROW_INBOUND_EMAIL_TLS_CERT_FILE:
+      BASEROW_INBOUND_EMAIL_TLS_KEY_FILE:
+      BASEROW_INBOUND_EMAIL_MAX_MESSAGE_SIZE_MB:
+      BASEROW_INBOUND_EMAIL_WEBAPI_PORT:
+      BASEROW_INBOUND_EMAIL_WEBAPI_BIND_IP:
+      BASEROW_INBOUND_EMAIL_RECEIVER_PASSWORD:
+      PRIVATE_BACKEND_URL: ${PRIVATE_BACKEND_URL:-http://backend:8000}
+      BASEROW_DEPLOYMENT_ENV:
+      OTEL_RESOURCE_ATTRIBUTES:
+    depends_on:
+      - backend
+    volumes:
+      - mox_data:/baserow/data/mox
+    networks:
+      - local
+    logging: *logging
+
+volumes:
+  pgdata:      # PostgreSQL interno: definiciones, usuarios, permisos. RESPALDAR.
+  media:       # Archivos adjuntos subidos por usuarios. RESPALDAR.
+  caddy_data:  # Certificados TLS. Opcional (se pueden reemitir).
+  caddy_config:
+  mox_data:    # Buzón del receptor de correo. Solo con perfil inbound-email.
+
+networks:
+  local:
+    driver: bridge
