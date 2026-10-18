@@ -1,0 +1,49 @@
+# =============================================================================
+# Hefesto Studio — Kit Baserow
+# .gitignore
+#
+# REGLA PRINCIPAL: si un archivo puede contener un secreto, no se versiona.
+# =============================================================================
+
+# Secretos de la instalación. NUNCA versionar.
+.env
+.env.*
+!.env.example
+*.env
+!*.env.example
+
+# Secretos en archivos (por si el operador elige la variante *_FILE de upstream).
+.secrets/
+*secret*
+*password*
+*.pgpass
+
+# Respaldos generados por los scripts del kit. Contienen datos del cliente.
+backups/
+*.tar.gz
+*.sql.gz
+*.manifest
+*.sha256
+
+# Certificados y claves TLS.
+*.pem
+*.key
+*.crt
+
+# Datos locales de desarrollo.
+data/
+pgdata/
+media/
+mox_data/
+
+# Archivos de sistema operativo y editores.
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Logs.
+*.log
+logs/

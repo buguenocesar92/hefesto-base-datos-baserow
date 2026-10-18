@@ -1,0 +1,19 @@
+# DEMOSTRACIÓN — Datos de clientes inventados
+# ------------------------------------------------------------------
+# NO SON DATOS REALES. Todos los nombres, correos, teléfonos y rut
+# fueron inventados para mostrar el kit. No corresponden a personas ni
+# a empresas existentes.
+#
+# No verificado: no se confirmó qué formatos acepta la importación en
+# Baserow 2.4.1. CSV es el punto de partida habitual, pero hay que
+# validarlo en la instancia antes de usarlo en serio.
+# ------------------------------------------------------------------
+rut,nombre,email,telefono,region,activo
+11111111-1,Empresa Demo Ltda.,contacto@empresa-demo.cl,+56 2 2345 6789,Metropolitana,TRUE
+22222222-2,Distribuidora Prueba SpA,admin@distribuidora-prueba.cl,+56 3 2345 1100,Valparaiso,TRUE
+33333333-3,Servicios Ejemplo Ltda,info@servicios-ejemplo.cl,+56 41 2345 2200,Biobio,FALSE
+44444444-4,Constructora Anteproyecto Ltda,contacto@anteproyecto-demo.cl,+56 2 2345 9900,Metropolitana,TRUE
+55555555-5,Importaciones Fantasma SpA,admin@importaciones-fantasma.cl,+56 51 2345 3300,Arica y Parinacota,FALSE
+66666666-6,Agricola Prueba del Sur,info@agricola-prueba.cl,+56 61 2345 4400,Magallanes,TRUE
+77777777-7,Tecnologia Muestra Ltda,contacto@tecnologia-muestra.cl,+56 2 2345 5500,Libertador General Bernardo OHiggins,TRUE
+88888888-8,Transportes Ejemplo SpA,admin@transportes-ejemplo.cl,+56 9 2345 6600,La Araucania,TRUE
