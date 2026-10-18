@@ -46,7 +46,7 @@ En **Environment Variables**, define lo mismo que en `.env`:
 | `REDIS_PASSWORD` | Sí | `openssl rand -base64 32` |
 | `BASEROW_JWT_SIGNING_KEY` | Recomendada | `openssl rand -base64 32` |
 | `BASEROW_PUBLIC_URL` | Sí | `https://tudominio.cl` |
-| `BASEROW_CADDY_ADDRESSES` | Sí | `:443` |
+| `BASEROW_CADDY_ADDRESSES` | No | `:80` (Traefik termina TLS) |
 | `BASEROW_VERSION` | No | `2.4.1` (ya viene por defecto) |
 
 Genera las cuatro claves **por separado**. Coolify guarda estas variables en su
@@ -64,13 +64,14 @@ en la interfaz de Coolify.
 1. **New Resource → Service → Proxy**, y apunta un dominio, por ejemplo
    `baserow.miempresa.cl`.
 2. Coolify genera el proxy inverso y emite el certificado TLS.
-3. Coolify enruta por dominio hacia los puertos que el compose publica.
+3. Coolify enruta por dominio al puerto interno 80 del servicio `caddy` (el
+   compose no publica puertos).
 
 Puntos concretos para este kit:
 
 | Aspecto | Valor en este kit | Qué revisar en Coolify |
 |---|---|---|
-| Puerto del contenedor | 80 y 443 (servicio `caddy`) | Que el proxy apunte a **80** para HTTP |
+| Puerto del contenedor | 80 (interno, sin publicar) (servicio `caddy`) | Que el proxy apunte a **80** para HTTP |
 | Proxy interno | Caddy, dentro del compose | Que Coolify no lo sustituya |
 | HTTPS | Terminado en Coolify | Que a Baserow le llegue HTTP por 80 |
 | `BASEROW_PUBLIC_URL` | Debe ser la URL pública | Si no coincide, fallan adjuntos y correos |
@@ -105,7 +106,10 @@ BASEROW_CADDY_ADDRESSES=:443
 ```
 
 Es decir, que Caddy termine el TLS directamente y no usar el proxy de Coolify.
-No se ha probado ninguna de las dos en Coolify.
+Esta alternativa exige volver a agregar el bloque `ports:` al servicio `caddy`
+del `compose.yaml` (publicando el 443) y **no aplica en la rama `coolify`**:
+en esta rama el compose no publica puertos y `BASEROW_CADDY_ADDRESSES` se
+queda en `:80`. No se ha probado ninguna de las dos variantes en Coolify.
 
 ---
 

@@ -159,7 +159,7 @@ for svc in "${SERVICIOS[@]}"; do
   done
 
   # security_opt con unconfined.
-  if echo "$D" | jq -e '.security_opt // [] | any(. == "unconfined")' >/dev/null; then
+  if echo "$D" | jq -e '.security_opt // [] | any(test("unconfined"))' >/dev/null; then
     error "$svc: tiene security_opt con unconfined"
     FALLOS=$((FALLOS+1))
   fi

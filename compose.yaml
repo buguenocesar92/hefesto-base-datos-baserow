@@ -72,8 +72,8 @@ x-backend-variables: &backend-variables
 services:
 
   # ---------------------------------------------------------------------------
-  # caddy — proxy inverso. Es el ÚNICO servicio con puertos publicados.
-  # Enruta /api, /ws y /media, y sirve los archivos adjuntos.
+  # caddy — proxy inverso interno (gateway); no publica puertos, Traefik de
+  # Coolify enruta a su :80. Enruta /api, /ws y /media, y sirve los adjuntos.
   # ---------------------------------------------------------------------------
   caddy:
     image: caddy:2.11.4
@@ -97,6 +97,11 @@ services:
       - caddy_data:/data
     networks:
       - local
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     logging: &logging
       driver: json-file
       options:

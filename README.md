@@ -132,21 +132,29 @@ adaptación está en `docs/02-INSTALACION-COOLIFY.md` y se valida con:
 bash scripts/coolify-check.sh
 ```
 
-Variables que aplican en Coolify (las obligatorias siguen abortando si faltan
-gracias a `${VAR:?}`; las que el contrato del kit no exige son opcionales):
+Variables que aplican en Coolify. Las tres secretas (`SECRET_KEY`,
+`DATABASE_PASSWORD`, `REDIS_PASSWORD`) siguen abortando si faltan gracias a
+`${VAR:?}`; el resto son opcionales con valor por defecto en el compose.
 
-| Variable | Obligatoria | Cómo obtenerla / valor por defecto |
+| Variable | Validada por `${VAR:?}` | Cómo obtenerla / valor por defecto |
 |---|---|---|
 | `SECRET_KEY` | Sí | `openssl rand -base64 32` |
 | `DATABASE_PASSWORD` | Sí | `openssl rand -base64 32` |
 | `REDIS_PASSWORD` | Sí | `openssl rand -base64 32` |
-| `BASEROW_PUBLIC_URL` | Sí | URL pública con TLS, p. ej. `https://basedatos.miempresa.cl` |
-| `BASEROW_JWT_SIGNING_KEY` | Recomendada | `openssl rand -base64 32` (si no, usa `SECRET_KEY`) |
+| `BASEROW_PUBLIC_URL` | No (default `http://localhost`) | En Coolify: `https://basedatos.hefesto-studio.cl` |
+| `BASEROW_JWT_SIGNING_KEY` | No | `openssl rand -base64 32` (si no, usa `SECRET_KEY`) |
 | `BASEROW_CADDY_ADDRESSES` | No | `:80` (Caddy queda como gateway HTTP interno; Traefik hace TLS) |
 | `BASEROW_VERSION` | No | `2.4.1` (default) |
 
-`HOST_PUBLISH_IP`, `WEB_FRONTEND_PORT` y `WEB_FRONTEND_SSL_PORT` se eliminaron
-junto con el bloque `ports:` de `caddy`: Coolify ya no las necesita.
+`BASEROW_PUBLIC_URL` **no** está validada por el compose: si no la defines,
+Baserow arranca con el default `http://localhost` y la URL pública queda
+equivocada. En Coolify hay que fijarla en `https://basedatos.hefesto-studio.cl`
+para que coincida con el dominio que Traefik sirve.
+
+`WEB_FRONTEND_PORT` y `WEB_FRONTEND_SSL_PORT` ya no se usan (salían en el
+bloque `ports:` de `caddy` que se quitó). `HOST_PUBLISH_IP` solo sigue
+aplicando al servicio `email-receiver` del perfil `inbound-email`, que **no**
+se activa en Coolify.
 
 Antes del primer despliegue público, **crear la cuenta administradora** desde
 el navegador: la primera persona que se registre toma la instancia. El
