@@ -120,6 +120,40 @@ Detalle completo en [`docs/01`](docs/01-INSTALACION-DOCKER.md).
 
 ---
 
+## Despliegue en Coolify (MVP Hefesto)
+
+Este kit está adaptado para correr **detrás de Coolify con su Traefik** en la
+rama `coolify`. La diferencia operativa es que `caddy` ya **no publica
+puertos**: el proxy externo (Traefik) termina TLS y enruta por dominio al
+puerto interno `:80` del contenedor `caddy`. El detalle del contrato y de la
+adaptación está en `docs/02-INSTALACION-COOLIFY.md` y se valida con:
+
+```bash
+bash scripts/coolify-check.sh
+```
+
+Variables que aplican en Coolify (las obligatorias siguen abortando si faltan
+gracias a `${VAR:?}`; las que el contrato del kit no exige son opcionales):
+
+| Variable | Obligatoria | Cómo obtenerla / valor por defecto |
+|---|---|---|
+| `SECRET_KEY` | Sí | `openssl rand -base64 32` |
+| `DATABASE_PASSWORD` | Sí | `openssl rand -base64 32` |
+| `REDIS_PASSWORD` | Sí | `openssl rand -base64 32` |
+| `BASEROW_PUBLIC_URL` | Sí | URL pública con TLS, p. ej. `https://basedatos.miempresa.cl` |
+| `BASEROW_JWT_SIGNING_KEY` | Recomendada | `openssl rand -base64 32` (si no, usa `SECRET_KEY`) |
+| `BASEROW_CADDY_ADDRESSES` | No | `:80` (Caddy queda como gateway HTTP interno; Traefik hace TLS) |
+| `BASEROW_VERSION` | No | `2.4.1` (default) |
+
+`HOST_PUBLISH_IP`, `WEB_FRONTEND_PORT` y `WEB_FRONTEND_SSL_PORT` se eliminaron
+junto con el bloque `ports:` de `caddy`: Coolify ya no las necesita.
+
+Antes del primer despliegue público, **crear la cuenta administradora** desde
+el navegador: la primera persona que se registre toma la instancia. El
+procedimiento está en [`docs/04`](docs/04-PRIMERA-CUENTA-Y-USUARIOS.md).
+
+---
+
 ## Seguridad en resumen
 
 - **PostgreSQL y Redis no tienen puertos publicados.** Solo el proxy `caddy`
