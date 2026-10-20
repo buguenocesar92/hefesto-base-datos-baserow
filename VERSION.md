@@ -105,7 +105,7 @@ defecto útil o que el operador realmente va a tocar. Diferencias completas:
 |---|---|---|
 | 1 | Se eliminan las ~290 variables vacías del backend | Eran documentación, no configuración. Mantenerlas confunde y llena el archivo de ruido |
 | 2 | Se agrupan en el ancla `x-backend-variables` | Evita repetir el bloque en cuatro servicios. Es lo mismo que hace upstream |
-| 3 | Se eliminan el servicio `email-receiver` y su volumen salvo en perfil `inbound-email` | Publica el puerto 25 en el host. upstream ya lo hace así para no abrirlo por defecto |
+| 3 | Se eliminan el servicio `email-receiver` y su volumen salvo en perfil `inbound-email` | Pública el puerto 25 en el host. upstream ya lo hace así para no abrirlo por defecto |
 | 4 | `depends_on` usa `condition: service_healthy` en vez de solo ordenar el arranque | Evita que backend y Celery se conecten a PostgreSQL antes de que esté listo. Decisión de Hefesto |
 | 5 | Se añade rotación de logs (`json-file`, 10 MB x 5) | Sin esto, los logs de un servidor que nunca se limpia crecen sin límite. Decisión de Hefesto |
 | 6 | Se fija `BASEROW_OSS_ONLY=true` por defecto | Deja explícito que la instalación es edición abierta, aunque alguien registre una licencia |

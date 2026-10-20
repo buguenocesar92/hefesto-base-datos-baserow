@@ -42,14 +42,14 @@ Este es el argumento de venta central, y está **verificado con cita textual**.
 
 Del sitio oficial de Baserow, sección de preguntas frecuentes:
 
-> "The self-hosted version will never have row, storage, or API request
+> "The self-hosted versión will never have row, storage, or API request
 > limitations. It will always be unlimited and free."
 
 > "Baserow Self-Hosted will never place limits on rows, records, webhooks, or
 > API requests—they will always be unlimited."
 
-> "Does Baserow have a rate limit? — The self-hosted version of Baserow does not
-> have a rate limit. The hosted version has a rate limit of maximum 10 concurrent
+> "Does Baserow have a rate limit? — The self-hosted versión of Baserow does not
+> have a rate limit. The hosted versión has a rate limit of maximum 10 concurrent
 > requests."
 
 Fuente: <https://baserow.io/pricing> (sección de preguntas frecuentes), y

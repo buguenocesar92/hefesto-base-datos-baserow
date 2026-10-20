@@ -57,7 +57,7 @@ va a descubrir que su base real no estaba cubierta cuando la necesite.
 El propio comando de respaldo de Baserow advierte, en su documentación:
 
 > "WARNING: This command is only safe to run on a database which is not actively
-> being updated and not connected to a running version of Baserow for the
+> being updated and not connected to a running versión of Baserow for the
 > duration of the back-up."
 
 > "Additionally when tables are being backed up this command will hold an
@@ -220,7 +220,7 @@ al respaldo. Si el respaldo se filtra, el `.env` no debe filtrarse con él.
 
 ## 9. Comandos oficiales de Baserow (referencia)
 
-El proyecto publica comandos propios de respaldo y restauración. Se dejan
+El proyecto pública comandos propios de respaldo y restauración. Se dejan
 documentados por completitud; **el kit usa `pg_dump`, que es más simple de
 auditar y no depende de la invocación interna de la imagen**.
 

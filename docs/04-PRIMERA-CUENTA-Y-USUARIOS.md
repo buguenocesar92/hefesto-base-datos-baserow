@@ -199,7 +199,7 @@ lo pegues en un canal de chat ni en un ticket.**
       `BASEROW_JWT_SIGNING_KEY` son distintos entre sí y generados localmente.
 - [ ] `.env` con permisos `600` y fuera del repositorio.
 - [ ] PostgreSQL y Redis **no** tienen puertos publicados (verificado: el
-      compose no publica ninguno de los dos).
+      compose no pública ninguno de los dos).
 - [ ] Cada usuario con el mínimo permiso que necesita.
 - [ ] Ninguna vista pública compartida sin revisarla.
 - [ ] Respaldo probado: se hizo uno y se comprobó que existe. Ver `docs/05`.

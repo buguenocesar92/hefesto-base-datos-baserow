@@ -50,7 +50,7 @@ Baserow permite ir **de cualquier versión a la más reciente** en un solo paso.
 Las migraciones intermedias se aplican todas solas.
 
 La propia documentación es explícita: *"No intermediate Baserow versions are
-needed. You can jump straight to the latest version."*
+needed. You can jump straight to the latest versión."*
 
 Fuente: <https://baserow.io/docs/installation/install-with-docker#upgrading-from-a-previous-version>
 
@@ -142,7 +142,7 @@ vez. Ver `docs/05`.
 | Trimestral | Actualizar Baserow, tras verificar las notas de la versión |
 | Trimestral | **Probar una restauración** de verdad, en entorno descartable |
 
-No apliques la última versión el mismo día que se publica. Espera unos días: si
+No apliques la última versión el mismo día que se pública. Espera unos días: si
 hay un problema, se habrá publicado y ya estará corregido.
 
 **Pendiente de verificar:** no se pudo revisar el contenido de las notas de

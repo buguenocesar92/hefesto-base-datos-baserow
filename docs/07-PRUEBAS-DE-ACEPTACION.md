@@ -28,9 +28,9 @@ Validación de seguridad del compose (por inspección del YAML parseado):
 
 | Prueba | Resultado |
 |---|---|
-| ¿Algún servicio publica el puerto de PostgreSQL? | **No.** `db` no tiene `ports:` |
-| ¿Algún servicio publica el puerto de Redis? | **No.** `redis` no tiene `ports:` |
-| ¿Quién publica puertos? | Solo `caddy` (80 y 443), más `email-receiver` tras perfil |
+| ¿Algún servicio pública el puerto de PostgreSQL? | **No.** `db` no tiene `ports:` |
+| ¿Algún servicio pública el puerto de Redis? | **No.** `redis` no tiene `ports:` |
+| ¿Quién pública puertos? | Solo `caddy` (80 y 443), más `email-receiver` tras perfil |
 | ¿Hay alguna imagen con `:latest`? | **No** |
 | ¿Los servicios de larga duración tienen `restart`? | **Sí**, `unless-stopped` |
 | ¿ElCorrector de permisos tiene reinicio? | No, y no debe: es tarea única |

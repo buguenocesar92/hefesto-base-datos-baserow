@@ -21,7 +21,7 @@ Baserow corre seis procesos de aplicación (backend, interfaz, tres workers de
 Celery y el planificador) más PostgreSQL y Redis. **No es un servidor de
 aplicaciones web único y pequeño.** Con 2 GB va justo.
 
-**Pendiente de verificar:** el equipo de Baserow publica requisitos oficiales de
+**Pendiente de verificar:** el equipo de Baserow pública requisitos oficiales de
 hardware en su sitio, pero esos valores no se pudieron leer de forma fiable al
 preparar este kit. La tabla de arriba es una estimación propia de Hefesto. Si el
 cliente tiene muchos usuarios simultáneos, medir antes de prometer nada.
@@ -195,7 +195,7 @@ completo está en `VERSION.md`, sección 3. Resumen:
 ## 7. Receptor de correo entrante (opcional)
 
 Solo si se usa el disparador de automatizaciones "Start workflow by email".
-**Publica el puerto 25 en el host**, así que solo actívalo si es necesario:
+**Pública el puerto 25 en el host**, así que solo actívalo si es necesario:
 
 ```bash
 # En .env

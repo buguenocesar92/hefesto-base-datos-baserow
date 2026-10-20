@@ -52,7 +52,7 @@ recomienda, aunque la licencia no lo prohíba.
 
 ### 1.3 Documentación
 
-La documentación se publica bajo **CC BY-SA 4.0**, según lo indicado en
+La documentación se pública bajo **CC BY-SA 4.0**, según lo indicado en
 <https://baserow.io/docs>.
 
 **Pendiente de verificación:** no se pudo confirmar la ruta exacta del archivo de

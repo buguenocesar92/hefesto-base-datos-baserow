@@ -80,7 +80,7 @@ la otra. Recomendado.
 | `BASEROW_BACKEND_LOG_LEVEL` | No | `INFO` | Decisión técnica | Solo verbosidad del log |
 | `BASEROW_INBOUND_EMAIL_DOMAIN` | No | (vacío) | Solo con perfil inbound-email | — |
 | `BASEROW_INBOUND_EMAIL_WEBHOOK_SECRET` | No | (vacío) | `openssl rand -hex 32` | — |
-| `BASEROW_INBOUND_EMAIL_HOST_SMTP_PORT` | No | `25` | Decisión de red | Publica SMTP en el host |
+| `BASEROW_INBOUND_EMAIL_HOST_SMTP_PORT` | No | `25` | Decisión de red | Pública SMTP en el host |
 
 ---
 

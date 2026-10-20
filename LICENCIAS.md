@@ -73,7 +73,7 @@ Fuente directa del texto de `premium/LICENSE` en 2.4.1:
 
 ### 2.2 Documentación
 
-La documentación del proyecto se publica bajo **CC BY-SA 4.0**.
+La documentación del proyecto se pública bajo **CC BY-SA 4.0**.
 
 **Pendiente de verificar:** no se pudo confirmar la ruta exacta del archivo de
 licencia de la documentación dentro del repositorio en 2.4.1. Antes de
