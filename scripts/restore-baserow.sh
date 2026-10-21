@@ -85,7 +85,6 @@ while IFS= read -r entrada; do
     /*)    die "Ruta absoluta detectada en media.tar.gz: '$entrada'. Se aborta." ;;
     ../*)  die "Salto hacia arriba detectado en media.tar.gz: '$entrada'. Se aborta." ;;
     */../*) die "Salto hacia arriba en medio de la ruta: '$entrada'. Se aborta." ;;
-    *"/../") die "Salto hacia arriba al final de la ruta: '$entrada'. Se aborta." ;;
   esac
 done <<< "$entradas"
 log "Rutas verificadas: sin absolutas ni saltos hacia arriba."
@@ -103,7 +102,6 @@ DB_PASS="$(leer_env DATABASE_PASSWORD)"
 # Nunca se restaura sobre una base que esté en uso. Además, el propio comando
 # de restauración de Baserow advierte que solo es seguro sobre una base que no
 # se está modificando.
-SERVICIOS="caddy backend web-frontend celery celery-export-worker celery-beat-worker"
 log "Deteniendo toda la instancia..."
 docker compose down --remove-orphans >/dev/null 2>&1 || die "No se pudo detener la instancia."
 
